@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registros</title>
+</head>
+<body>
+    <h1>Registros</h1>
+    <h2>Adicionar Registro</h2>
+    <a href="/adicionar_registro">Adicionar Registro</a>
+
+    <h2>Registros</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Idade</th>
+        </tr>
+        <!-- Loop para exibir os registros -->
+        {% for registro in registros %}
+        <tr>
+            <td>{{ registro.id }}</td>
+            <td>{{ registro.nome }}</td>
+            <td>{{ registro.idade }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/">Voltar para a página inicial</a>
+</body>
+</html>

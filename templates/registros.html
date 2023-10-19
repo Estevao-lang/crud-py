@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registros</title>
+</head>
+<body>
+    <h1>Registros</h1>
+
+    <h2>Adicionar Registro</h2>
+    <form action="/adicionar_registro" method="post">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome"><br>
+
+        <label for="idade">Idade:</label>
+        <input type="text" id="idade" name="idade"><br>
+
+        <input type="submit" value="Adicionar Registro">
+    </form>
+
+    <h2>Registros</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Idade</th>
+        </tr>
+        <!-- Loop para exibir os registros -->
+        {% for registro in registros %}
+        <tr>
+            <td>{{ registro.id }}</td>
+            <td>{{ registro.nome }}</td>
+            <td>{{ registro.idade }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

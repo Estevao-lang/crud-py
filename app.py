@@ -86,24 +86,29 @@ def verifica_login():
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
 
-        # Use SELECT para verificar os dados de login
-        cursor.execute("SELECT * FROM user WHERE nome = %s AND email = %s", (nome, email))
+        # Use SELECT para recuperar a senha e o salt do banco de dados
+        cursor.execute("SELECT senha, salt FROM user WHERE nome = %s AND email = %s", (nome, email))
         user = cursor.fetchone()
 
+        if user:
+            hashed_password_from_db = user['senha'].encode('utf-8')
+            salt_from_db = bytes(user['salt'])  # Convertendo bytearray para bytes
+            hashed_password_input = bcrypt.hashpw(senha.encode('utf-8'), salt_from_db)
+
+            if hashed_password_from_db == hashed_password_input:
+                # As senhas coincidem, redireciona para a página inicial
+                cursor.close()
+                conn.close()
+                return redirect(url_for('pagina_inicial'))
+        
+        # Se o usuário não existir ou as senhas não coincidirem, renderize a página de login com uma mensagem de erro
         cursor.close()
         conn.close()
+        return render_template('login.html', error="Credenciais inválidas")
 
-        if user and bcrypt.checkpw(senha.encode('utf-8'), user['senha'].encode('utf-8')):
-            # Senha correta, redirecione para a página inicial
-            return render_template('pagina_inicial.html')
-        else:
-            # Senha incorreta, renderize a página de login novamente
-            return render_template('login.html')
-
-    # Se for um método GET, renderize a página de login novamente
+    # Para solicitações GET, renderize a página de login
     return render_template('login.html')
 
-# ... (restante do seu código)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Login</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Adicionando um arquivo de estilo externo -->
+    <title>Editar Registro</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
+
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: #f4f4f4;
         }
         
         .container {
-            max-width: 400px;
+            max-width: 500px;
             margin: 50px auto;
             padding: 20px;
             background-color: #fff;
@@ -22,6 +23,7 @@
         
         h1 {
             text-align: center;
+            margin-bottom: 20px;
         }
         
         .form-group {
@@ -33,9 +35,7 @@
             margin-bottom: 5px;
         }
         
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
+        .form-control {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -44,12 +44,11 @@
         }
         
         .btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
+            display: inline-block;
+            padding: 10px 20px;
             background-color: #007bff;
             color: #fff;
-            border: none;
+            text-decoration: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
@@ -58,43 +57,24 @@
         .btn:hover {
             background-color: #0056b3;
         }
-        
-        p {
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        p a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        
-        p a:hover {
-            text-decoration: underline;
-        }
-        
-
+         
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Registro de Login</h1>
-        <form action="/registro_de_login.html" method="post" class="login-form">
+        <h1>Editar Registro</h1>
+        <form action="/editar_registro/{{ registro.id }}" method="POST" class="edit-form">
             <div class="form-group">
                 <label for="nome">Nome:</label>
-                <input type="text" id="nome" name="nome" required>
+                <input type="text" id="nome" name="nome" value="{{ registro.nome }}" class="form-control">
             </div>
             <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+                <label for="idade">Idade:</label>
+                <input type="text" id="idade" name="idade" value="{{ registro.idade }}" class="form-control">
             </div>
-            <div class="form-group">
-                <label for="senha">Senha:</label>
-                <input type="password" id="senha" name="senha" required>
-            </div>
-            <button type="submit" class="btn">Registrar</button>
+
+            <input type="submit" value="Salvar Alterações" class="btn btn-primary">
         </form>
-        <p>Já tem uma conta? Faça <a href="{{ url_for('login_page') }}">login</a>.</p>
     </div>
 </body>
 </html>

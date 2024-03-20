@@ -1,7 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for
+
+from flask import Flask, flash, render_template, request, redirect, url_for, session
 import mysql.connector
 import bcrypt
+import datetime
+
 app = Flask(__name__)
+app.secret_key = 'vocacao-key'
 
 # Configurações do banco de dados
 db_config = {
@@ -11,7 +15,97 @@ db_config = {
     'database': 'registro'
 }
 
-# Rota para adicionar registro
+# Funções de Login
+@app.route('/registro_de_login.html', methods=['GET', 'POST'])
+def registro_de_login():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+        
+        senha_encoded = senha.encode('utf-8')
+        
+        salt = bcrypt.gensalt(8)
+        hashed_password = bcrypt.hashpw(senha_encoded, salt)
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("INSERT INTO user (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, hashed_password))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+    return render_template('registro_de_login.html')
+
+def verificar_credenciais(nome, email, senha):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT senha FROM user WHERE nome = %s AND email = %s", (nome, email))
+        user = cursor.fetchone()
+
+        if user:
+            hashed_password_from_db = user.get('senha').encode('utf-8')
+
+            if bcrypt.checkpw(senha.encode('utf-8'), hashed_password_from_db):
+                return True
+
+    finally:
+        for _ in cursor:
+            pass  
+        cursor.close()
+        conn.close()
+
+    return False
+
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def fazer_login():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+
+        if verificar_credenciais(nome, email, senha):
+            session['logged_in'] = True
+            session['username'] = nome
+            session['last_active'] = datetime.datetime.now(datetime.timezone.utc)
+
+            flash('Login bem-sucedido!', 'success')
+            return redirect(url_for('pagina_inicial'))
+        else:
+            flash('Credenciais inválidas. Tente novamente.', 'error')
+
+    return render_template('login.html')
+
+# Rotas relacionadas ao Login
+@app.route('/')
+def login():
+    return render_template('login.html', registros=[])
+
+@app.route('/pagina_inicial')
+def pagina_inicial():
+    if 'logged_in' in session:
+        current_time = datetime.datetime.now(datetime.timezone.utc)
+
+        if (current_time - session['last_active']).seconds > 180:
+            session.clear()  
+            flash('Sessão expirada. Faça login novamente.', 'info')
+            return redirect(url_for('login'))
+
+        return render_template('pagina_inicial.html', username=session['username'])
+    else:
+        flash('Faça login para acessar esta página.', 'info')
+        return redirect(url_for('login'))
+
+# Funções de Registro
+
+# Rota para adicionar um novo registro
 @app.route('/adicionar_registro', methods=['GET', 'POST'])
 def adicionar_registro():
     if request.method == 'POST':
@@ -45,70 +139,44 @@ def exibir_registros():
 
     return render_template('exibir_registros.html', registros=registros)
 
-@app.route('/registro_de_login.html', methods= ['GET','POST'])
-def registro_de_login():
+# Rota para deletar registro
+@app.route('/deletar_registro/<int:id>', methods=['POST'])
+def deletar_registro(id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM registros WHERE id = %s", (id,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    flash('Registro deletado com sucesso!', 'success')
+    return redirect(url_for('exibir_registros'))
+
+# Rota para editar registro
+@app.route('/editar_registro/<int:id>', methods=['GET', 'POST'])
+def editar_registro(id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
     if request.method == 'POST':
         nome = request.form['nome']
-        email = request.form['email']
-        senha = request.form['senha']
-        
-        #Encode a senha antes de aplicar hash
-        senha_encoded = senha.encode('utf-8')
-        
-        salt = bcrypt.gensalt(8)
-        hashed_password  = bcrypt.hashpw(senha_encoded,salt)
+        idade = request.form['idade']
 
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
-
-        cursor.execute("INSERT INTO user (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, hashed_password))
+        cursor.execute("UPDATE registros SET nome = %s, idade = %s WHERE id = %s", (nome, idade, id))
         conn.commit()
 
-        cursor.close()
-        conn.close()
-    return render_template('registro_de_login.html')
+        flash('Registro editado com sucesso!', 'success')
+        return redirect(url_for('exibir_registros'))
 
-@app.route('/login')
-def login_page():
-     return render_template('login.html')
+    cursor.execute("SELECT * FROM registros WHERE id = %s", (id,))
+    registro = cursor.fetchone()
 
-@app.route('/')
-def login():
-    return render_template('login.html', registros=[])
+    cursor.close()
+    conn.close()
 
-@app.route('/login.html', methods=['POST', 'GET'])
-def verifica_login():
-    if request.method == 'POST':
-        nome = request.form['nome']
-        email = request.form['email']
-        senha = request.form['senha']
-
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor(dictionary=True)
-
-        # Use SELECT para recuperar a senha e o salt do banco de dados
-        cursor.execute("SELECT senha, salt FROM user WHERE nome = %s AND email = %s", (nome, email))
-        user = cursor.fetchone()
-
-        if user:
-            hashed_password_from_db = user['senha'].encode('utf-8')
-            salt_from_db = bytes(user['salt'])  # Convertendo bytearray para bytes
-            hashed_password_input = bcrypt.hashpw(senha.encode('utf-8'), salt_from_db)
-
-            if hashed_password_from_db == hashed_password_input:
-                # As senhas coincidem, redireciona para a página inicial
-                cursor.close()
-                conn.close()
-                return redirect(url_for('pagina_inicial'))
-        
-        # Se o usuário não existir ou as senhas não coincidirem, renderize a página de login com uma mensagem de erro
-        cursor.close()
-        conn.close()
-        return render_template('login.html', error="Credenciais inválidas")
-
-    # Para solicitações GET, renderize a página de login
-    return render_template('login.html')
-
+    return render_template('editar_registro.html', registro=registro)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,29 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registros</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .options-section, .records-section {
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .edit-button, .delete-button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+     
+        
+        .edit-button:hover, .delete-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            color: #007bff;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        
+        .back-link:hover {
+            color: #0056b3;
+        }
+        
+    </style>
 </head>
 <body>
-    <h1>Registros</h1>
-    <h2>Adicionar Registro</h2>
-    <a href="/adicionar_registro">Adicionar Registro</a>
-
-    <h2>Registros</h2>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Idade</th>
-        </tr>
-        <!-- Loop para exibir os registros -->
-        {% for registro in registros %}
-        <tr>
-            <td>{{ registro.id }}</td>
-            <td>{{ registro.nome }}</td>
-            <td>{{ registro.idade }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <a href="/">Voltar para a página inicial</a>
+    <div class="container">
+        <h1>Registros</h1>
+        
+        <div class="options-section">
+            <h2>Adicionar Registro</h2>
+            <a href="/adicionar_registro" class="button">Adicionar Registro</a>
+        </div>
+        
+        <div class="records-section">
+            <h2>Registros</h2>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Idade</th>
+                    <th>Ações</th>
+                </tr>
+                <!-- Loop para exibir os registros -->
+                {% for registro in registros %}
+                <tr>
+                    <td>{{ registro.id }}</td>
+                    <td>{{ registro.nome }}</td>
+                    <td>{{ registro.idade }}</td>
+                    <td>
+                        <!-- Formulário para editar o registro -->
+                        <form action="{{ url_for('editar_registro', id=registro['id']) }}" method="GET">
+                            <button type="submit" class="edit-button">Editar</button>
+                        </form>
+                        <!-- Formulário para excluir o registro -->
+                        <br>
+                        <form action="/deletar_registro/{{ registro.id }}" method="POST" style="display: inline;">
+                            <button type="submit" class="delete-button">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        
+        <a href="{{ url_for('pagina_inicial') }}" class="back-link">Voltar para a página inicial</a>
+    </div>
 </body>
 </html>

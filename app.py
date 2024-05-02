@@ -12,10 +12,14 @@ db_config = {
     'host': 'localhost',
     'user': 'root',
     'password': '',
-    'database': 'registro'
+    'database': ' resgistro'
 }
 
-# Funções de Login
+# Rotas relacionadas ao Login
+@app.route('/')
+def login():
+    return render_template('login.html', registros=[])
+
 @app.route('/registro_de_login.html', methods=['GET', 'POST'])
 def registro_de_login():
     if request.method == 'POST':
@@ -83,10 +87,7 @@ def fazer_login():
 
     return render_template('login.html')
 
-# Rotas relacionadas ao Login
-@app.route('/')
-def login():
-    return render_template('login.html', registros=[])
+
 
 @app.route('/pagina_inicial')
 def pagina_inicial():
@@ -180,3 +181,4 @@ def editar_registro(id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
